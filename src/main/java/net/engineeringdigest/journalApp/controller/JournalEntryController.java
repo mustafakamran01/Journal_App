@@ -44,7 +44,6 @@ public class JournalEntryController {
     public ResponseEntity<?> createEntry(@RequestBody JournalEntry journalEntry) {
         Map<String, Object> response = new HashMap<>();
         try {
-            journalEntry.setDate(LocalDateTime.now());
             journalEntryService.saveEntry(journalEntry);
             response.put("recordCreated", true);
             response.put("record", journalEntry);
