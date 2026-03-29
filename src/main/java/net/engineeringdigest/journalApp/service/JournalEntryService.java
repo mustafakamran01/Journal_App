@@ -6,8 +6,10 @@ import net.engineeringdigest.journalApp.repository.JournalEntryRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,20 +22,33 @@ public class JournalEntryService {
     @Autowired
     private UserService userService;
 
-    public List<JournalEntry> getAllEntry() {
-        return journalEntryRepository.findAll();
+    public List<JournalEntry> getAllEntry(String userName) {
+        User user = userService.findByUserName(userName);
+        if (user == null) {
+            return new ArrayList<>();
+        }
+        List<JournalEntry> journalEntries = user.getJournalEntries();
+        if (journalEntries == null || journalEntries.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return journalEntries;
     }
 
     public Optional<JournalEntry> findById(ObjectId id) {
         return journalEntryRepository.findById(id);
     }
 
+    @Transactional
     public void saveEntry(JournalEntry journalEntry, String userName) {
-        User userInDB = userService.findByUserName(userName);
-        journalEntry.setDate(LocalDateTime.now());
-        JournalEntry savedEntry = journalEntryRepository.save(journalEntry);
-        userInDB.getJournalEntries().add(savedEntry);
-        userService.createUser(userInDB);
+        try {
+            User userInDB = userService.findByUserName(userName);
+            journalEntry.setDate(LocalDateTime.now());
+            JournalEntry savedEntry = journalEntryRepository.save(journalEntry);
+            userInDB.getJournalEntries().add(savedEntry);
+            userService.createUser(userInDB);
+        } catch (Exception e) {
+            throw new RuntimeException("An error occurred while saving the entries in database -> ", e);
+        }
     }
 
     public void saveEntry(JournalEntry journalEntry) {

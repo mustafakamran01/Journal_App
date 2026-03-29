@@ -96,8 +96,7 @@ public class JournalEntryController {
     @GetMapping("/getAll/{userName}")
     public ResponseEntity<?> getAllEntriesOfUser(@PathVariable String userName) {
         Map<String, Object> response = new HashMap<>();
-        User user = userService.findByUserName(userName);
-        List<JournalEntry> entries = user.getJournalEntries();
+        List<JournalEntry> entries = journalEntryService.getAllEntry(userName);
         if (entries != null && !entries.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FOUND).body(entries);
         }
